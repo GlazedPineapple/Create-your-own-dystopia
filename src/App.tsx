@@ -1,26 +1,24 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import "./App.scss";
+import useWords from "./useWords";
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    const words = useWords();
+
+    if (words === undefined) {
+        return (
+            <div className="loading">Loading&hellip;</div>
+        )
+    } else {
+        return (
+            <div className="app">
+                <div className="score"/>
+                <progress className="scoreProgress"/>
+                <textarea className="input"/>
+                <pre>{JSON.stringify(words, undefined, 4)}</pre>
+            </div>
+        );
+    }
 }
 
 export default App;
