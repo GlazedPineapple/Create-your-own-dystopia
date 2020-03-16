@@ -1,4 +1,9 @@
-import { useEffect, useState } from "react";
+import {
+    useEffect,
+    useState
+}
+
+from "react";
 
 /** The word with a weight */
 export interface IWord {
@@ -9,34 +14,68 @@ export interface IWord {
 }
 
 export default function useWords() {
-    const [words, setWords] = useState<IWord[]>();
+    const [words,
+    setWords]=useState<IWord[]>();
 
-    useEffect(() => {
-        (async () => {
-            const response = await fetch(`${process.env.PUBLIC_URL}/cleanSentiment.csv`);
+    useEffect(()=> {
+            (async ()=> {
+                    let output=await parseCSV(`$ {
+                            process.env.PUBLIC_URL
+                        }
 
-            if (response.ok) {
-                const data = await response.text();
+                        /cleanSentiment.csv`);
+                    output=output.concat(await parseCSV(`$ {
+                                process.env.PUBLIC_URL
+                            }
 
-                const matcher = /(.*),(.*)/;
+                            /positive-words.txt`, 1));
+                    output=output.concat(await parseCSV(`$ {
+                                process.env.PUBLIC_URL
+                            }
 
-                const output: IWord[] = [];
-                for (const line of data.split("\n")) {
-                    const result = matcher.exec(line);
+                            /negitive-words.txt`, -1));
 
-                    if (result !== null) {
-                        output.push({
-                            rating: parseFloat(result[2]),
-                            word: result[1]
-                        });
-                    }
+                    console.dir(output);
+
+                    setWords(output);
                 }
-                setWords(output);
-            } else {
-                console.error(response.status, response.statusText);
-            }
-        })().catch((e) => console.error(e));
-    }, []);
+
+            )().catch((e)=> console.error(e));
+        }
+
+        , []);
 
     return words;
+}
+
+async function parseCSV(url: string, def=0) {
+    const response=await fetch(url);
+
+    if (response.ok) {
+        const data=await response.text();
+
+        const matcher=/(.*)(?:, (.*))+?/;
+
+        const output: IWord[]=[];
+
+        for (const line of data.split("\n")) {
+            const result=matcher.exec(line);
+
+            if (result !==null) {
+                output.push( {
+                        rating: parseFloat(result[2] ?? def),
+                        word: result[1]
+                    }
+
+                );
+            }
+        }
+
+        return output;
+    }
+
+    else {
+        console.error(response.status, response.statusText);
+        return [];
+    }
 }
